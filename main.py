@@ -1,11 +1,7 @@
 import subprocess
-
 from lib import logger, try_int, ensure_status, set_clipboard, show_message
 from managers import Clipman, Clipster, CopyQ, GPaste
-
 from ulauncher.api import Extension, ExtensionResult, ExtensionSmallResult
-from ulauncher.api.client.EventListener import EventListener
-from ulauncher.api.shared.event import KeywordQueryEvent, PreferencesEvent, PreferencesUpdateEvent, ItemEnterEvent
 from ulauncher.api.shared.action.ExtensionCustomAction import ExtensionCustomAction
 
 
@@ -66,20 +62,10 @@ def set_manager(name):
             'dialog-error'
         )
 
-class PreferencesLoadListener(EventListener):
-    def on_event(self, event, extension):
-        extension.preferences.update(event.preferences)
-        set_manager(event.preferences['manager'])
 
-
-class PreferencesChangeListener(EventListener):
-    def on_event(self, event, _):
-        if event.id == 'manager':
-            set_manager(event.new_value)
-
-class KeywordQueryEventListener(EventListener):
-    def on_event(self, event, extension):
-        max_lines = try_int(extension.preferences['max_lines'], 20)
+class Clipboard(Extension):
+    def on_query_change(self, event):
+        max_lines = try_int(self.preferences['max_lines'], 20)
         icon = 'edit-paste'
         query = (event.get_argument() or '').lower()
 
@@ -119,10 +105,9 @@ class KeywordQueryEventListener(EventListener):
 
         return show_status('No matches in clipboard history' if len(query) > 0 else 'Clipboard history is empty')
 
-class ItemEnterEventListener(EventListener):
-    def on_event(self, event, extension):
+    def on_item_enter(self, event):
         text = event.get_data()
-        copy_hook = extension.preferences['copy_hook']
+        copy_hook = self.preferences['copy_hook']
 
         # Prefer to use the clipboard managers own implementation
         if getattr(manager, 'add', None):
@@ -136,13 +121,13 @@ class ItemEnterEventListener(EventListener):
             logger.info('Running copy hook: ' + copy_hook)
             subprocess.Popen(['sh', '-c', copy_hook])
 
-class Clipboard(Extension):
-    def __init__(self):
-        super(Clipboard, self).__init__()
-        self.subscribe(KeywordQueryEvent, KeywordQueryEventListener())
-        self.subscribe(PreferencesEvent, PreferencesLoadListener())
-        self.subscribe(PreferencesUpdateEvent, PreferencesChangeListener())
-        self.subscribe(ItemEnterEvent, ItemEnterEventListener())
+    def on_preferences(self, event):
+        self.preferences.update(event.preferences)
+        set_manager(event.preferences['manager'])
+
+    def on_preferences_update(self, event):
+        if event.id == 'manager':
+            set_manager(event.new_value)
 
 if __name__ == '__main__':
     Clipboard().run()
