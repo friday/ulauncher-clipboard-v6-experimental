@@ -1,5 +1,5 @@
 import subprocess
-from lib import logger, try_int, ensure_status, set_clipboard, show_message
+from lib import logger, try_int, ensure_status, set_clipboard
 from managers import Clipman, Clipster, CopyQ, GPaste
 from ulauncher.api import Extension, ExtensionResult, ExtensionSmallResult
 from ulauncher.api.shared.action.ExtensionCustomAction import ExtensionCustomAction
@@ -51,29 +51,19 @@ def get_manager(name):
         if m.name == name:
             return m
 
-def set_manager(name):
-    global manager
-    logger.info('Loading ulauncher-clipboard manager: %s', name)
-    manager = get_manager(name)
-    if not ensure_status(manager):
-        show_message(
-            'ulauncher-clipboard error',
-            "Could not load {}. Make sure it's installed and enabled.".format(manager.name),
-            'dialog-error'
-        )
-
 
 class Clipboard(Extension):
     def on_query_change(self, event):
         max_lines = try_int(self.preferences['max_lines'], 20)
+        self.manager = get_manager(self.preferences['manager'])
         icon = 'edit-paste'
         query = (event.get_argument() or '').lower()
 
-        if not ensure_status(manager):
+        if not ensure_status(self.manager):
             return show_status('Could not start {}. Please make sure you have it on your system and that it is not disabled.'.format(manager.name))
 
         try:
-            history = manager.get_history()
+            history = self.manager.get_history()
 
         except Exception as e:
             logger.error('Failed getting clipboard history')
@@ -110,9 +100,9 @@ class Clipboard(Extension):
         copy_hook = self.preferences['copy_hook']
 
         # Prefer to use the clipboard managers own implementation
-        if getattr(manager, 'add', None):
+        if getattr(self.manager, 'add', None):
             logger.info("Adding to clipboard using clipboard manager's method")
-            manager.add(text)
+            self.manager.add(text)
         else:
             logger.info("Adding to clipboard using fallback method")
             set_clipboard(text)
@@ -120,14 +110,6 @@ class Clipboard(Extension):
         if copy_hook:
             logger.info('Running copy hook: ' + copy_hook)
             subprocess.Popen(['sh', '-c', copy_hook])
-
-    def on_preferences(self, event):
-        self.preferences.update(event.preferences)
-        set_manager(event.preferences['manager'])
-
-    def on_preferences_update(self, event):
-        if event.id == 'manager':
-            set_manager(event.new_value)
 
 if __name__ == '__main__':
     Clipboard().run()

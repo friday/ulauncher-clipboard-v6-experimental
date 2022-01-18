@@ -5,15 +5,12 @@ import gi
 gi.require_versions({
     'Gdk': '3.0',
     'Gtk': '3.0',
-    'Notify': '0.7',
 })
 
-from gi.repository import Gdk, Gtk, Notify, GObject
+from gi.repository import Gdk, Gtk, GObject
 from time import sleep
 
-
 logger = logging.getLogger('ulauncher-clipboard')
-Notify.init('ulauncher-clipboard-extension')
 
 
 def exec_get(*args):
@@ -39,13 +36,6 @@ def set_clipboard(text):
     clipboard.store()
     GObject.timeout_add(25, Gtk.main_quit)
     Gtk.main()
-
-def show_message(title, body, icon, expires=Notify.EXPIRES_NEVER, urgency=2):
-    message = Notify.Notification.new(title, body, icon)
-    message.set_timeout(expires)
-    message.set_urgency(urgency)
-    message.show()
-    return message
 
 def ensure_status(manager, attempts=0):
     running = manager.is_running()
