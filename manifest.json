@@ -4,7 +4,7 @@
   "name": "Clipboard",
   "description": "Ulauncher clipboard management using GPaste, Clipster, Clipman or CopyQ",
   "developer_name": "Albin Larsson",
-  "icon": "edit-paste.png",
+  "icon": "edit-paste",
   "preferences": [
     {
       "id": "manager",

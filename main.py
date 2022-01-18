@@ -18,7 +18,7 @@ sorter = lambda m: int("{}{}".format(int(m.is_enabled()), int(m.is_running())))
 def show_status(status):
     return RenderResultListAction([ExtensionResultItem(
         name          = status,
-        icon          = 'edit-paste.png',
+        icon          = 'edit-paste',
         highlightable = False
     )])
 
@@ -83,7 +83,7 @@ class PreferencesChangeListener(EventListener):
 class KeywordQueryEventListener(EventListener):
     def on_event(self, event, extension):
         max_lines = try_int(extension.preferences['max_lines'], 20)
-        icon = 'edit-paste.png'
+        icon = 'edit-paste'
         query = (event.get_argument() or '').lower()
 
         if not ensure_status(manager):
