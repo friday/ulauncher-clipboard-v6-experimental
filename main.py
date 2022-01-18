@@ -3,11 +3,9 @@ import subprocess
 from lib import logger, try_int, ensure_status, set_clipboard, show_message
 from managers import Clipman, Clipster, CopyQ, GPaste
 
-from ulauncher.api.client.Extension import Extension
+from ulauncher.api import Extension, ExtensionResult, ExtensionSmallResult
 from ulauncher.api.client.EventListener import EventListener
 from ulauncher.api.shared.event import KeywordQueryEvent, PreferencesEvent, PreferencesUpdateEvent, ItemEnterEvent
-from ulauncher.api.shared.item.ExtensionSmallResultItem import ExtensionSmallResultItem
-from ulauncher.api.shared.item.ExtensionResultItem import ExtensionResultItem
 from ulauncher.api.shared.action.ExtensionCustomAction import ExtensionCustomAction
 from ulauncher.api.shared.action.RenderResultListAction import RenderResultListAction
 
@@ -16,7 +14,7 @@ clipboard_managers = [CopyQ, GPaste, Clipster, Clipman]
 sorter = lambda m: int("{}{}".format(int(m.is_enabled()), int(m.is_running())))
 
 def show_status(status):
-    return RenderResultListAction([ExtensionResultItem(
+    return RenderResultListAction([ExtensionResult(
         name          = status,
         icon          = 'edit-paste',
         highlightable = False
@@ -43,7 +41,7 @@ def format_entry(icon, query, entry):
         if line:
             context.append(line + '...')
 
-    return ExtensionSmallResultItem(
+    return ExtensionSmallResult(
         icon     = icon,
         name     = '\n'.join(context),
         on_enter = ExtensionCustomAction(entry)
