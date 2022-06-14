@@ -53,11 +53,11 @@ def get_manager(name):
 
 
 class Clipboard(Extension):
-    def on_query_change(self, event):
+    def on_query_change(self, query):
         max_lines = try_int(self.preferences['max_lines'], 20)
         self.manager = get_manager(self.preferences['manager'])
         icon = 'edit-paste'
-        query = (event.get_argument() or '').lower()
+        query = query.argument.lower()
 
         if not ensure_status(self.manager):
             return show_status('Could not start {}. Please make sure you have it on your system and that it is not disabled.'.format(manager.name))
@@ -95,8 +95,7 @@ class Clipboard(Extension):
 
         return show_status('No matches in clipboard history' if len(query) > 0 else 'Clipboard history is empty')
 
-    def on_item_enter(self, event):
-        text = event.get_data()
+    def on_item_enter(self, text):
         copy_hook = self.preferences['copy_hook']
 
         # Prefer to use the clipboard managers own implementation
